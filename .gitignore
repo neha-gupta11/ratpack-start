@@ -20,3 +20,4 @@ stacktrace.log
 # IntelliJ IDEA files below
 *.iml
 .idea/
+.gradle/
