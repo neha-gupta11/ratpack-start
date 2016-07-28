@@ -38,3 +38,7 @@ task stage {
 }
 
 //task wrapper(type: Wrapper) { gradleVersion = '2.7' }
+
+run {
+	jvmArgs "-Dratpack.port=5060"
+}
