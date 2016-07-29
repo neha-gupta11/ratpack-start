@@ -1,39 +1,60 @@
 import static ratpack.groovy.Groovy.ratpack
+import ratpack.exec.Blocking
 
 ratpack{
 	handlers{
-		get('canaryRun'){
-			render 'true'
+		get('async1') {
+			println "async 1111"
+			Blocking.get {
+				println "222"
+				new File("../ratpack-start/build.gradle").text // returns string
+			}then {
+				println "44"
+				render it // it is the return of getValueFromDb()
+				println "555"
+			}
+			println "666"
 		}
 
-//		http://localhost:5060/canaryRun/some
-		get("canaryRun/:name"){
-			render "I am person with name \'${pathTokens.name}\' and your name is"
-		}
-
-//		http://localhost:5060/name=neha
-		//This will grab all the characters after :5060/
-//		get(":name") {
-//			render "Hello ${pathTokens.getOrDefault('name', 'all')}!"
-//		}
-
-		path('profiles/:username?') {
-			render pathTokens.getOrDefault('username', 'all')
-		}
-
-		//the parameters we pass in parameters can be read through request.queryParams.
-//		http://localhost:5060/queryParams?firstname=neha&lastname=gupta
-		get("queryParams"){
-			render "The query params are "+request.queryParams
-		}
-
-		path("fooMethods") {
-			byMethod {
-				get {
-					render "Hello, Foo Get!"
+		get('async2') {
+			def l = []
+			println "block 1"
+			Blocking.get {
+				return Thread.start {
+					println "Thread 1"
+					sleep 3000
 				}
-				post {
-					render "Hello, Foo Post!"
+			} then {
+				l << it
+//				Thread[Thread-n,5,main]
+			}
+			Blocking.get {
+				return Thread.start {
+					println "Thread 2"
+					sleep 2000
+				}
+			} then {
+				l << it
+			}
+			Blocking.get {
+				return Thread.start {
+					println "Thread 3"
+					sleep 1000
+				}
+			}then {
+				l << it
+				render l.join(",")
+			}
+		}
+
+		prefix("channel") {
+			get {
+				println "The channel"
+				Blocking.get {
+					sleep 1000
+					println "something is here"
+				} then {
+					render it+">>>>>>>>>>"
 				}
 			}
 		}
